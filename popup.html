@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pylon Workload Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 320px;
+      padding: 20px;
+      background: #111118;
+      color: #c8c8d8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 13px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .logo { font-size: 18px; }
+
+    header h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e8e8f8;
+    }
+
+    header p {
+      font-size: 10px;
+      color: #5a5a80;
+      margin-top: 1px;
+    }
+
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #5a5a80;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap { position: relative; }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 9px 36px 9px 10px;
+      background: #0e0e16;
+      border: 1px solid #26263a;
+      border-radius: 7px;
+      color: #e8e8f8;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus { border-color: #6666cc; }
+
+    .toggle-vis {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #5a5a80;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .toggle-vis:hover { color: #c8c8d8; }
+
+    .btn-save {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 9px;
+      background: #6666cc;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-save:hover { background: #7a7adf; }
+    .btn-save:active { background: #5555bb; }
+
+    #status {
+      height: 18px;
+      margin-top: 8px;
+      text-align: center;
+      font-size: 11px;
+      color: #50c878;
+      transition: opacity 0.3s;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #1e1e2e;
+      margin: 16px 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .info-card {
+      background: #0e0e16;
+      border: 1px solid #1e1e2e;
+      border-radius: 7px;
+      padding: 8px 10px;
+    }
+
+    .info-card-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #3a3a58;
+      margin-bottom: 4px;
+    }
+
+    .info-card-body { font-size: 11px; color: #7878a0; line-height: 1.6; }
+
+    .priority-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">◉</span>
+    <div>
+      <h1>Workload Dashboard</h1>
+      <p>For Pylon · builder.io support team</p>
+    </div>
+  </header>
+
+  <label for="apiKey">Pylon API Key</label>
+  <div class="input-wrap">
+    <input type="password" id="apiKey" placeholder="Enter your API key…" autocomplete="off" />
+    <button class="toggle-vis" id="toggleVis" title="Show / hide">👁</button>
+  </div>
+
+  <button class="btn-save" id="save">Save</button>
+  <div id="status"></div>
+
+  <hr class="divider" />
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-card-label">Priority weights</div>
+      <div class="info-card-body">
+        <span class="priority-dot" style="background:#e87878"></span>Urgent — 4<br>
+        <span class="priority-dot" style="background:#e8a838"></span>High — 3<br>
+        <span class="priority-dot" style="background:#9090e0"></span>Medium — 2<br>
+        <span class="priority-dot" style="background:#50c878"></span>Low — 1
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Tracked states</div>
+      <div class="info-card-body">
+        <span class="priority-dot" style="background:#9090e0"></span>New<br>
+        <span class="priority-dot" style="background:#e8a838"></span>On you<br>
+        <br>
+        Refreshes every 60s
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -239,7 +239,8 @@ function renderAssignees(container, assignees) {
     return;
   }
 
-  const topScore = assignees[0].score || 1;
+  // Use the max score for bar scaling so the order of the list doesn't matter
+  const topScore = Math.max(1, ...assignees.map(a => a.score));
 
   const rows = assignees.map(a => {
     const pct  = Math.round((a.score / topScore) * 100);

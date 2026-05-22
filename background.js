@@ -11,6 +11,13 @@ const PRIORITY_WEIGHTS = {
 // States that count toward the workload score / dashboard
 const ACTIVE_STATES = ['new', 'waiting_on_you'];
 
+// Only show these team members in the dashboard. Matched against the first
+// word of the user's display name, case-insensitively.
+const VISIBLE_FIRST_NAMES = new Set([
+  'jared', 'fernando', 'akash', 'stephane', 'parth',
+  'manish', 'rahul', 'sheema', 'gonza',    'alex',
+]);
+
 // In-memory user cache so we don't re-fetch on every refresh
 let userCache = null;       // Map<id, {name, email}>
 let userCacheExpiry = 0;
@@ -63,20 +70,23 @@ async function fetchAllActiveIssues(apiKey, excludeSlugs) {
   const issues = [];
   let cursor = null;
 
-  // Compound filter: state in [new, waiting_on_you] AND state not_in [<custom slugs in those categories>]
-  const stateFilter = excludeSlugs.length
-    ? {
-        operator: 'and',
-        subfilters: [
-          { field: 'state', operator: 'in',     values: ACTIVE_STATES },
-          { field: 'state', operator: 'not_in', values: excludeSlugs   },
-        ],
-      }
-    : { field: 'state', operator: 'in', values: ACTIVE_STATES };
+  // Compound filter: state in [new, waiting_on_you] AND issue_type = ticket
+  //                  AND state not_in [<custom slugs in those categories>]
+  // The issue_type filter is critical — Pylon's "On you" UI view only shows
+  // tickets, not conversations, so without this we double-count Slack/email
+  // conversations that happen to be assigned to a user.
+  const subfilters = [
+    { field: 'state',      operator: 'in',     values: ACTIVE_STATES },
+    { field: 'issue_type', operator: 'equals', value:  'ticket'      },
+  ];
+  if (excludeSlugs.length) {
+    subfilters.push({ field: 'state', operator: 'not_in', values: excludeSlugs });
+  }
+  const searchFilter = { operator: 'and', subfilters };
 
   while (true) {
     const body = {
-      filter: stateFilter,
+      filter: searchFilter,
       limit: 100,
       ...(cursor ? { cursor } : {}),
     };
@@ -200,5 +210,11 @@ function groupByAssignee(issues, userMap) {
     entry.score += PRIORITY_WEIGHTS[priority] ?? 1;
   }
 
-  return Object.values(map).sort((a, b) => b.score - a.score);
+  return Object.values(map)
+    .filter(a => {
+      const first = (a.name || '').trim().split(/\s+/)[0]?.toLowerCase();
+      return first && VISIBLE_FIRST_NAMES.has(first);
+    })
+    // Lightest workload first, heaviest last
+    .sort((a, b) => a.score - b.score);
 }

@@ -1,12 +1,18 @@
 const BASE_URL = 'https://api.usepylon.com';
 
-const PRIORITY_WEIGHTS = {
-  urgent: 4,
-  high: 3,
-  medium: 2,
-  normal: 2,
-  low: 1,
+// Workload score per ticket comes from the `rank_ticket` custom field.
+// Ranks are A (highest) → M (lowest); unset or N/A counts the same as M.
+const RANK_SCORES = {
+  a: 13, b: 12, c: 11, d: 10, e: 9, f: 8, g: 7,
+  h: 6,  i: 5,  j: 4,  k: 3,  l: 2, m: 1,
+  n_a: 1,
 };
+
+function rankScoreFor(issue) {
+  const raw = issue.custom_fields?.rank_ticket?.value;
+  const key = String(raw ?? '').toLowerCase().trim();
+  return RANK_SCORES[key] ?? 1; // unknown / unset → same as N/A
+}
 
 // States that count toward the workload score / dashboard
 const ACTIVE_STATES = ['new', 'waiting_on_you'];
@@ -206,8 +212,7 @@ function groupByAssignee(issues, userMap) {
     if (issue.state === 'new') entry.newCount++;
     else if (issue.state === 'waiting_on_you') entry.waitingCount++;
 
-    const priority = (issue.priority ?? 'medium').toLowerCase();
-    entry.score += PRIORITY_WEIGHTS[priority] ?? 1;
+    entry.score += rankScoreFor(issue);
   }
 
   return Object.values(map)
